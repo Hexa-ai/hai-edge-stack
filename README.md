@@ -60,6 +60,25 @@ Une fois les conteneurs démarrés, vous devez connecter les outils entre eux.
 
 ### B. Connecter Grafana à PostgreSQL
 
+### C. Configurer l'accès distant avec Tailscale
+
+Pour rendre les services de cette stack (Node-RED, Grafana, etc.) accessibles à distance de manière sécurisée, vous pouvez utiliser Tailscale. Cela nécessite d'installer le client Tailscale directement sur votre machine Windows.
+
+1.  **Installer Tailscale pour Windows** : Suivez les instructions sur le site officiel de Tailscale.
+
+2.  **Exposer les services sur le réseau Tailscale** : Une fois les conteneurs démarrés, les services sont accessibles sur `localhost`. Pour les exposer sur votre réseau Tailscale, ouvrez PowerShell et lancez les commandes `tailscale serve`. Elles continueront de fonctionner en arrière-plan.
+
+    ```powershell
+    # Exposer Node-RED (port 1880)
+    tailscale serve --bg --tcp 1880 tcp://localhost:1880
+    # Exposer Grafana (port 3000)
+    tailscale serve --bg --tcp 3000 tcp://localhost:3000
+    # Exposer PGAdmin (port 5050)
+    tailscale serve --bg --tcp 5050 tcp://localhost:5050
+    ```
+
+Une fois ces commandes exécutées, vous pourrez accéder à vos services depuis n'importe quel appareil de votre Tailnet en utilisant `http://<nom-de-votre-machine-windows>:<port>`.
+
 1.  Accédez à Grafana : http://localhost:3000
     *   **Login** : `admin`
     *   **Password** : `hai1@`
@@ -125,6 +144,29 @@ Podman utilise `netavark` pour la gestion réseau. Vérifiez que tous les conten
 ```powershell
 podman network inspect iot-network
 ```
+## 6. Démarrage Automatique de la Stack (Windows)
 
-### Tailscale ne démarre pas
-Vérifiez que la variable `TS_USERSPACE=true` est bien présente dans le `docker-compose.yml`. Le mode kernel n'est pas supporté facilement sur Podman pour Windows.
+Pour que votre stack Podman et vos services démarrent automatiquement à l'ouverture de votre session Windows, vous pouvez créer un simple script et le placer dans le dossier de démarrage.
+
+### Étape 1 : Vérifier le script de démarrage
+
+Le script `StartPodman.bat` est déjà inclus dans ce dépôt. Il lance la machine virtuelle Podman et démarre les conteneurs.
+
+**Action requise :** Vous devez simplement vous assurer que le chemin à l'intérieur du script correspond à l'emplacement de votre projet sur votre ordinateur.
+
+1.  Faites un clic-droit sur le fichier `StartPodman.bat` et sélectionnez **Modifier**.
+2.  Vérifiez la ligne `cd "C:\hai-edge-stack"`.
+3.  Si vous avez cloné le projet dans un autre dossier, modifiez ce chemin en conséquence.
+4.  Enregistrez et fermez le fichier.
+
+### Étape 2 : Placer un raccourci dans le dossier "Démarrage"
+
+Pour que Windows exécute ce script à chaque connexion :
+
+1.  Appuyez sur les touches `Windows + R` pour ouvrir la fenêtre "Exécuter".
+2.  Tapez `shell:startup` et cliquez sur **OK**. Le dossier "Démarrage" de votre session s'ouvrira.
+3.  Dans une autre fenêtre, naviguez jusqu'au dossier de votre projet (où se trouve `StartPodman.bat`).
+4.  Faites un clic-droit sur `StartPodman.bat` et sélectionnez **Copier**.
+5.  Retournez dans le dossier "Démarrage", faites un clic-droit dans un espace vide et sélectionnez **Coller le raccourci**.
+
+C'est tout ! La prochaine fois que vous démarrerez Windows, vos services se lanceront automatiquement en arrière-plan.

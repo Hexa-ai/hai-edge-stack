@@ -67,25 +67,7 @@ services:
     networks:
       - iot-network
 
-  # Service Tailscale
-  tailscale:
-    container_name: tailscale
-    image: tailscale/tailscale:latest
-    hostname: iot-stack
-    restart: always
-    environment:
-      - TS_AUTHKEY=tskey-auth-change-me
-      - TS_STATE_DIR=/var/lib/tailscale
-      - TS_USERSPACE=true
-    volumes:
-      - v_tailscale:/var/lib/tailscale:Z
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    networks:
-      - iot-network
-
-# Déclaration du volume nommé pour Postgres
+# Déclaration des volumes nommés
 volumes:
   v_postgres:
   v_pgadmin:
