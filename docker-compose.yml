@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Service Base de données PostgreSQL
+  postgres:
+    container_name: postgres
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: hai1@
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      # MODIFICATION CRITIQUE : Utilisation d'un volume nommé pour la DB
+      # Les bind mounts (dossiers Windows) ne supportent pas les droits stricts de Postgres
+      - v_postgres:/var/lib/postgresql/data
+    networks:
+      - iot-network
+
+  # Service Interface de gestion pour PostgreSQL
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@postgres.com
+      PGADMIN_DEFAULT_PASSWORD: hai1@
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - iot-network
+    volumes:
+      - v_pgadmin:/var/lib/pgadmin:Z
+
+  # Service Node-RED
+  node-red:
+    container_name: nodered
+    image: nodered/node-red:4.0.9-22
+    restart: always
+    ports:
+      - "1880:1880"
+    environment:
+      - TZ=Europe/Paris
+    volumes:
+      - ./data/node-red:/data:Z
+    depends_on:
+      - postgres
+    networks:
+      - iot-network
+
+  # Service Grafana
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:10.2.2
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=hai1@
+    volumes:
+      - ./data/grafana:/var/lib/grafana:Z
+    networks:
+      - iot-network
+
+  # Service Tailscale
+  tailscale:
+    container_name: tailscale
+    image: tailscale/tailscale:latest
+    hostname: iot-stack
+    restart: always
+    environment:
+      - TS_AUTHKEY=tskey-auth-change-me
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=true
+    volumes:
+      - v_tailscale:/var/lib/tailscale:Z
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      - iot-network
+
+# Déclaration du volume nommé pour Postgres
+volumes:
+  v_postgres:
+  v_pgadmin:
+  v_tailscale:
+
+networks:
+  iot-network:
+    driver: bridge
