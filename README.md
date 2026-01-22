@@ -1,4 +1,4 @@
-# hai-stack (Node-RED, PostgreSQL, Grafana) avec Podman sur Windows
+# hai-edge-stack (Node-RED, PostgreSQL, Grafana) avec Podman sur Windows
 
 Ce projet déploie une stack complète pour l'IoT comprenant :
 
