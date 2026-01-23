@@ -10,6 +10,8 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: hai1@
       POSTGRES_DB: postgres
+      TZ: UTC      # Heure système du conteneur
+      PGTZ: UTC    # Heure par défaut des sessions SQL
     ports:
       - "5432:5432"
     volumes:
@@ -44,7 +46,7 @@ services:
     ports:
       - "1880:1880"
     environment:
-      - TZ=Europe/Paris
+      - TZ=UTC  # Force le système Linux du conteneur en UTC
     volumes:
       - ./data/node-red:/data:Z
     depends_on:
